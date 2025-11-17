@@ -1,0 +1,89 @@
+global_config:
+  task_name: !!str 'prediction'
+
+data_config:
+  data_processor_name: ActivityProcessor
+
+  # Scaler
+  scaler_name: LongMinMaxScaler
+  scaler_params:
+    min: null
+    max: null
+
+  # Dataset
+  dataset_name: ITSPredictionDataset
+  dataset_params:
+    history_len: 3000
+    forecast_len: 1000
+    use_time_chunk: true
+    chunk_stride: 1000
+    reset_tp_after_chunk: true
+    output_style: long
+    use_cache: true
+    enable_agg_mask: !!bool true
+    num_hyper_nodes_per_var: !!int 24
+    agg_gp_train_iters: !!int 20
+    agg_gp_lr: !!float 0.05
+    agg_sample_ratio: !!float 0.10
+    agg_dynamic: !!bool false
+    agg_norm_across_vars: !!bool false
+
+  dataloader_params:
+    shuffle: True
+    num_workers: 0
+    pin_memory: True
+    drop_last: False
+
+model_config:
+  model_name: STRGCN
+  model_params:
+    c_in: !!int 1
+    c_out: !!int 1
+    hid_dim: !!int 32
+    n_layer: !!int 2
+    num_hyper_nodes_per_var: !!int 24
+    use_efficient_gcn: !!bool true
+    use_info_agg: !!bool true
+    dropout: !!float 0.0
+    gcn_type: !!str 'cheb'
+    gcn_depth: !!int 2
+    use_bias: !!bool true
+    use_norm: !!bool true
+    time_embedding_type: !!str 'rbf'
+    node_dim: !!int 16
+    load_adj: !!bool false
+    use_revin: !!bool true
+    revin_affine: !!bool true
+
+
+train_config:
+  batch_size: 32
+  load_checkpoint: False
+  metrics: [ "masked_mse_long", "masked_mae_long", "masked_rmse_long", "masked_mape_long" ]
+  random_seed: 3407
+  device: cuda:0
+
+  # Optimizer
+  optimizer_name: Adam
+  optimizer_params:
+    lr: 0.001
+    weight_decay: 0.0
+
+  # Scheduler
+  scheduler_name: StepLR
+  scheduler_params:
+    step_size: 3
+    gamma: 0.5
+
+  # Trainer
+  trainer_name: IrrFCGraphForecastTrainer
+  trainer_params:
+    random_seed: 3407
+    device: cuda:0
+    max_epoch_num: 30
+    enable_early_stop: True 
+    early_stop_patience: 10 
+    eval_metric_key: "masked_mse_long"
+    eval_metric_min_is_best: True
+    enable_autocast: False 
+    do_inverse_scaling: False 

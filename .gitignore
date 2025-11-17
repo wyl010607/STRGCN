@@ -1,0 +1,18 @@
+# Compiled python modules.
+__pycache__/
+
+jupyter_notebooks/.ipynb_checkpoints
+.ipynb_checkpoints
+
+# PyCharm
+/.idea
+
+# Visual Studio Code
+.vscode/
+
+model_states/
+results/
+data/
+base_models/
+cache/
+/models/todo/

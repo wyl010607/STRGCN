@@ -1,0 +1,90 @@
+global_config:
+  task_name: !!str 'classification'
+
+data_config:
+  data_processor_name: P12CLSProcessor
+
+  # Scaler
+  scaler_name: DynStaLongStandardScaler
+  scaler_params:
+    eps: !!float 1e-18
+
+  # Dataset
+  dataset_name: ITSClassificationDataset
+  dataset_params:
+    time_scale: !!float 2880.0
+    use_cache: !!bool true
+    drop_empty_series: !!bool true
+    output_style: long
+    enable_agg_mask: !!bool false
+    num_hyper_nodes_per_var: !!int 24
+    agg_gp_train_iters: !!int 20
+    agg_gp_lr: !!float 0.05
+    agg_sample_ratio: !!float 0.10
+    agg_dynamic: !!bool false
+    agg_norm_across_vars: !!bool false
+
+  dataloader_params:
+    shuffle: False
+    num_workers: 0
+    pin_memory: True
+    drop_last: False
+
+model_config:
+  model_name: STRGCNCLS
+  model_params:
+    c_in: !!int 1
+    c_out: !!int 2
+    hid_dim: !!int 32
+    n_layer: !!int 2
+    use_efficient_gcn: !!bool true
+    use_info_agg: !!bool true
+    dropout: !!float 0.0
+    gcn_type: !!str 'cheb'
+    gcn_depth: !!int 1
+    use_bias: !!bool true
+    use_norm: !!bool true
+    time_embedding_type: !!str 'rbf'
+    node_dim: !!int 16
+    load_adj: !!bool false
+    use_revin: !!bool false
+    revin_affine: !!bool false
+    use_static: !!bool true
+    static_in_dim: !!int 9
+
+
+
+train_config:
+  batch_size: 32
+  use_balanced_sampler: true     
+  repeat_minority: 3             
+
+  load_checkpoint: False
+  metrics: ["accuracy", "auroc", "auprc"]
+  random_seed: 3407
+  device: cuda:0
+
+  # Optimizer
+  optimizer_name: Adam
+  optimizer_params:
+    lr: 0.01
+    weight_decay: 0.0
+
+  # Scheduler
+  scheduler_name: StepLR
+  scheduler_params:
+    step_size: 3
+    gamma: 0.5
+
+  # Trainer
+  trainer_name: IrrFCGraphClassificationTrainer
+  trainer_params:
+    random_seed: 3407
+    device: cuda:0
+    max_epoch_num: 30
+    enable_early_stop: True
+    early_stop_patience: 10
+    eval_metric_key: "auprc"
+    eval_metric_min_is_best: False
+    enable_autocast: False
+    do_inverse_scaling: False
